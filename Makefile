@@ -1,12 +1,10 @@
-CC = mpic++ -std=c++11
+CC = g++ -std=c++11
 OBJ = *.o
-EXE = attention attention_try
+EXE = checksum
 
 all:${EXE}
 
-attention: attention.cpp
-	$(CC) -o $@ $^ $(FLAGS) 
-attention_try: attention_try.cpp
+checksum: checksum.cpp
 	$(CC) -o $@ $^ $(FLAGS) -Ofast -fopenmp -Ofast -march=native
 
 clean:

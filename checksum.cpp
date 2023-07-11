@@ -1,73 +1,157 @@
 #include <cstdio>
-#include <mpi.h>
-#include <tuple>
 #include <cmath>
 #include <string>
+#include <string.h>
+#include <iostream>
+#include <bitset>
+// #include <mpi.h>
+#include <cstdlib>
+#include <ctime>
 
-/*
-    You can modify the following namespace.
-*/
-namespace attention {
-    struct Matrix {
-        int row, col;
-        double **data;
+int BER = 1e6;
 
-        Matrix(int row, int col) : row(row), col(col) {
-            data = new double*[row];
-            for (int i = 0; i < row; ++i) {
-                data[i] = new double[col];
-            }
+int ERRCASE;
+int errcnt;
+
+bool GetError()
+{
+    int res = rand() % BER;
+    if (res == 0)           // ERROR HAPPENS
+    {
+        errcnt++;
+        return false;
+    }
+    else
+        return true;
+}
+bool GetBit()
+{
+    int res = rand() % 2;
+    return res;
+}
+
+namespace checksum
+{
+    struct Packet
+    {
+        int length;
+        int *data;
+        int checksum;
+
+
+        Packet(int L) : length(L)
+        {
+            data = new int[length];
+
         }
-
-        ~Matrix() {
-            for (int i = 0; i < row; ++i) {
-                delete[] data[i];
-            }
+        ~Packet()
+        {
             delete[] data;
         }
     };
 
 
+    void PrintData(Packet* P)
+    {
+        for (int i = 0; i < P->length; i++)
+            std::cout << std::bitset<32> (P->data[i]) << std::endl;
+    }
+    void GenerateZero(Packet* P)                    // for error detection rate
+    {
+        memset(P->data, 0, P->length * sizeof(int));
+    }
+    void GenerateRandom(Packet* P)                  // for homomorphic correctness
+    {
+        for (int i = 0; i < P->length; i++)
+        {
+            int ans = 0;
+            for (int j = 0; j < 31; j++)
+                ans |= (int)GetBit() << j;
+            P->data[i] = ans;
+        }
+    }
+
+    // CHECK
+    void(*check_func[10])(Packet*);
+    void Trivial(Packet* P)                         // just add
+    {
+        int ans = 0;
+        for (int i = 0; i < P->length; i++)
+            ans += P->data[i];
+        P->checksum = ans;
+    }
+    void CRC(Packet* P)                             // bitxor
+    {
+
+    }
+    void Dimwise(Packet* P)
+    {
+
+    }
+    void Fletcher(Packet* P)
+    {
+        
+    }
+    void Adler(Packet* P)
+    {
+        
+    }
+
+    void Fill_func()
+    {
+        check_func[0] = Trivial;
+        check_func[1] = CRC;
+        check_func[2] = Dimwise;
+
+
+    }
+
+
+
+
+
+}
+
+void Init()
+{
+    srand(time(0));
+    errcnt = 0;
+}
+
+bool Check_Homomorphic(int length, int N, void(*func)(void))
+{
+    checksum::Packet* A = new checksum::Packet(length);
+    checksum::Packet* B = new checksum::Packet(length);
+    for (int i = 0; i < N; i++)
+    {
+        checksum::GenerateRandom(A);
+        checksum::GenerateRandom(B);
+        
+    }
+}
+bool Check_Ratio()
+{
 
 }
 
 
 
-int main(int argc, char **argv) {
-    MPI_Init(&argc, &argv);
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-
-    // Prepare for matrices and the ans.
-    attention::Matrix *q, *k, *v;
+int main(int argc, char **argv)
+{
     double ans;
-    if (rank == 0) {
-        printf("Matrix size: %d x %d\n", q->row, q->col);
-        printf("Ans: %.10lf\n", ans);
+    Init();
+    for (int i = 0; i < 1e8; i++)
+    {
+        GetError();
     }
+    std::cout << errcnt;
+    checksum::Packet* P = new checksum::Packet(8);
 
-    // Start attention.
-    auto start = MPI_Wtime();
-    auto qkv = attention::attention(q, k, v);
-    auto end = MPI_Wtime();
+    // P->GenerateZero();
+    // P->PrintData();
+    // P->GenerateRandom();
+    // P->PrintData();
 
-    // Reduce the answer
-    double qkv_ans = reduce_the_sum(qkv);
-    if (rank == 0) {
-        printf("Your answer: %.10lf\n", qkv_ans);
-
-        // Check the answer.
-        bool correct = check(qkv_ans, ans);
-
-        // Output the result.
-        if (correct) {
-            printf("Correct! Time: %.10lf\n", end - start);
-        } else {
-            printf("Wrong!\n");
-        }
-    }
-    MPI_Finalize();
 
     return 0;
 }
