@@ -80,6 +80,11 @@ namespace checksum
             ans += P->data[i];
         P->checksum = ans;
     }
+
+    void LRC(Packet* P)
+    {
+        
+    }
     void CRC(Packet* P)                             // bitxor
     {
 
