@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cmath>
+#include <stdio.h>
 #include <string>
 #include <string.h>
 #include <iostream>
@@ -9,31 +10,30 @@
 #include <ctime>
 
 #define bs32 std::bitset<32>
-#define BITERRORRATIO 1e6
 #define CRC32_POLY_HEX 0x04C11DB7
 
-int BER = BITERRORRATIO;
+#define BER 1e3
+#define Homomorphic_Ntimes 1e6
+#define Prob_Undetected_Ntimes 1e6
 
-int ERRCASE;
-int errcnt;
+
 
 bool GetError()
 {
     int res = rand() % BER;
     if (res == 0)           // ERROR HAPPENS
     {
-        errcnt++;
-        return false;
+        // errcnt++;
+        return true;
     }
     else
-        return true;
+        return false;
 }
 bool GetBit()
 {
     int res = rand() % 2;
     return res;
 }
-
 
 bool CRC32_avail = false;
 unsigned int CRC32_table[256];
@@ -51,10 +51,10 @@ unsigned int reverse(unsigned int temp)
 void MakeCRC32()                            // 8bit复用存表
 {
     CRC32_post = reverse(CRC32_pre);
-    printf("%X\n", CRC32_pre);
-    printf("%X\n", CRC32_post);
-    std::cout << std::bitset<32>(CRC32_pre) << std::endl;
-    std::cout << std::bitset<32>(CRC32_post) << std::endl;
+    // printf("%X\n", CRC32_pre);
+    // printf("%X\n", CRC32_post);
+    // std::cout << std::bitset<32>(CRC32_pre) << std::endl;
+    // std::cout << std::bitset<32>(CRC32_post) << std::endl;
 
     for (int i = 0; i < 256; i++)
     {
@@ -101,7 +101,7 @@ namespace checksum
     {
         int length;
         int *data;
-        int checksum;
+        unsigned int checksum;
 
 
         Packet(int L) : length(L)
@@ -114,7 +114,8 @@ namespace checksum
             delete[] data;
         }
     };
-
+    void(*check_func[20])(Packet*);
+    std::string check_func_name[20];
 
     void PrintData(Packet* P)
     {
@@ -134,23 +135,16 @@ namespace checksum
                 ans |= (int)GetBit() << j;
             P->data[i] = ans;
         }
+        //这里有个不足，我稍后修改一下
+        //错误也会发生在checksum中，必须考虑
     }
 
-    void Aggregate(Packet* P1, Packet* P2, Packet* P3)
+    unsigned int Add_checksum(unsigned int a, unsigned int b)
     {
-        if (P1->length != P2->length || P1->length != P3->length)
-        {
-            std::cout << "!invalid source data!" << std::endl;
-            return;
-        }
-        int length = P1->length;
-        for (int i = 0; i < length; i++)
-            P3->data[i] = P1->data[i] + P2->data[i];
-        P3->checksum = P1->checksum + P2->checksum;
+        return a + b;
     }
 
     // CHECK
-    void(*check_func[10])(Packet*);
     void Trivial(Packet* P)                         // ADD
     {
         int ans = 0;
@@ -171,27 +165,45 @@ namespace checksum
         unsigned int ans = CalcCRC32(0, (char*)P->data, P->length * sizeof(int) / sizeof(char));
         P->checksum = ans;
     }
-    void Dimwise(Packet* P)
+    void None(Packet* P)
     {
 
     }
     void Fletcher(Packet* P)
     {
-
-        
+        int ans = CalcForA(0, (uint16_t*) P->data, P->length * sizeof(int) / sizeof(uint16_t), 0xFFFF);     // one's complement
+        P->checksum = ans;
     }
     void Adler(Packet* P)
     {
-        
+        int ans = CalcForA(1, (uint16_t*) P->data, P->length * sizeof(int) / sizeof(uint16_t), 0xFFF1);
+        P->checksum = ans;
     }
+    void AdlerPro()
+    {
+
+    }
+    void Devide()
+    {
+
+    }
+
 
     void Fill_func()
     {
-        check_func[0] = Trivial;
-        check_func[1] = LRC;
-        check_func[2] = CRC;
-        check_func[3] = Dimwise;
+        check_func[0] = &Trivial;
+        check_func[1] = &LRC;
+        check_func[2] = &CRC;
+        check_func[3] = &None;
+        check_func[4] = &Fletcher;
+        check_func[5] = &Adler;
 
+        check_func_name[0] = "Trivial";
+        check_func_name[1] = "LRC";
+        check_func_name[2] = "CRC";
+        check_func_name[3] = "None";
+        check_func_name[4] = "Fletcher";
+        check_func_name[5] = "Adler";
 
     }
 
@@ -199,15 +211,29 @@ namespace checksum
 
 
 
+    void Aggregate(Packet* P1, Packet* P2, Packet* P3, int func_id)
+    {
+        if (P1->length != P2->length || P1->length != P3->length)
+        {
+            std::cout << "!invalid source data!" << std::endl;
+            return;
+        }
+        int length = P1->length;
+        for (int i = 0; i < length; i++)
+            P3->data[i] = P1->data[i] + P2->data[i];
+        check_func[func_id](P3);
+    }
 }
 
 void Init()
 {
     srand(time(0));
+    checksum::Fill_func();
 }
 
-double Test_Homomorphic(int length, int Ntimes, void(*func)(checksum::Packet*))
+double Test_Homomorphic(int length, int Ntimes, int func_id)
 {
+    std::cout << "-----Testing function " << func_id << ": " << checksum::check_func_name[func_id] << std::endl;
     checksum::Packet* A = new checksum::Packet(length);
     checksum::Packet* B = new checksum::Packet(length);
     checksum::Packet* C = new checksum::Packet(length);
@@ -216,28 +242,33 @@ double Test_Homomorphic(int length, int Ntimes, void(*func)(checksum::Packet*))
     {
         checksum::GenerateRandom(A);
         checksum::GenerateRandom(B);
-        func(A);
-        func(B);
+        (checksum::check_func[func_id])(A);
+        (checksum::check_func[func_id])(B);
         int Asum = A->checksum;
         int Bsum = B->checksum;
+        int Csum_exp = checksum::Add_checksum(Asum, Bsum);
 
-        checksum::Aggregate();
+        checksum::Aggregate(A, B, C, func_id);
+        int Csum = C->checksum;
         
-        
+        if(Csum_exp == Csum)
+            cnt++;
     }
+    std::cout << "Homomorphic: " << cnt << " homomorphic cases under " << Ntimes << " tests" << std::endl;
     delete A;
     delete B;
     delete C;
     return cnt / Ntimes;
 }
-double Test_ErrorRatio(int length, int Ntimes, void(*func)(checksum::Packet*))
+double Test_ErrorRatio(int length, int Ntimes, int func_id)
 {
     double cnt = 0;
+    int errorcnt = 0;
     checksum::Packet* A = new checksum::Packet(length);
     for (int i = 0; i < Ntimes; i++)
     {
         checksum::GenerateZero(A);
-        func(A);
+        checksum::check_func[func_id](A);
         unsigned int Asum_pre = A->checksum;
         bool errorflag = 0;
         for (int j = 0; j < length; j++)
@@ -253,11 +284,15 @@ double Test_ErrorRatio(int length, int Ntimes, void(*func)(checksum::Packet*))
         }
         if (!errorflag)                                             // error or not
             continue;
-        func(A);
+        errorcnt++;
+        checksum::check_func[func_id](A);
         unsigned int Asum_post = A->checksum;
-        if (Asum_post != Asum_pre)                                  // undetected error
+        if (Asum_post == Asum_pre)                                  // undetected error
             cnt++;
     }
+    std::cout << "ErrorRatio: " << cnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n\n";
+
+
     delete A;
     return cnt / Ntimes;
 }
@@ -266,7 +301,15 @@ double Test_ErrorRatio(int length, int Ntimes, void(*func)(checksum::Packet*))
 
 int main(int argc, char **argv)
 {
+    int length = 50;
+    Init();
 
+    for (int i = 0; i < 6; i++)
+    {
+        int H = Test_Homomorphic(length, Homomorphic_Ntimes, i);
+        int P_ud = Test_ErrorRatio(length, Prob_Undetected_Ntimes, i);
+        
+    }
 
     return 0;
 }
