@@ -10,18 +10,18 @@
 #include <ctime>
 
 // CONFIG
-#define Vector_Length 50
-#define Bit_Error_Ratio 1e3
+#define Vector_Length 100
+#define Bit_Error_Ratio 1e4
 #define Homomorphic_Ntest 1e6
-#define Prob_Undetected_Ntest 1e6
+#define Prob_Undetected_Ntest 5e7
 
 
 #define bs32 std::bitset<32>
 // MAGIC NUMBER
 #define CRC32_POLY_HEX 0x04C11DB7
-#define None_Modnum 1ull << 32
-#define Devide_Modnum 0xFF03C0FFull
-#define Paillier_Modnum 0xF000FF06ull
+#define None_Moduli 1ull << 32
+#define Devide_Moduli 0xFF03C0FFull
+#define Paillier_Moduli 0xF000FF06ull
 
 
 // Bit Op
@@ -60,15 +60,15 @@ void CalcPrime()
         }
 }
 
-unsigned int FastPow(unsigned int a, unsigned int n, unsigned long long modnum)
+unsigned int FastPow(unsigned int a, unsigned int n, unsigned long long moduli)
 {
     unsigned long long temp = a, res = 1;
     while(n != 0)
     {
         if (n & 1)
-            res = (res * temp) % modnum;
+            res = (res * temp) % moduli;
         n >>= 1;
-        temp = (temp * temp) % modnum;
+        temp = (temp * temp) % moduli;
     }
     return res;
 }
@@ -123,14 +123,14 @@ unsigned int CalcCRC32(unsigned int crc, char* buff, int len)
 }
 
 // Fletcher or Adler
-unsigned int CalcForA(unsigned int init_sum1, uint16_t* ptr, int len, int modnum)
+unsigned int CalcForA(unsigned int init_sum1, uint16_t* ptr, int len, unsigned long long moduli)
 {
     unsigned int sum1 = init_sum1;
     unsigned int sum2 = 0;
     for (int i = 0; i < len; i++)
     {
-        sum1 = (sum1 + ptr[i]) % modnum;
-        sum2 = (sum2 + sum1) % modnum;
+        sum1 = (sum1 + ptr[i]) % moduli;
+        sum2 = (sum2 + sum1) % moduli;
     }
     return (sum2 << 16) | sum1;
 }
@@ -144,6 +144,7 @@ namespace checksum
         int length;
         int *data;
         unsigned int checksum;
+        unsigned int checksumEx;
 
         Packet(int L) : length(L)
         {
@@ -158,8 +159,8 @@ namespace checksum
     // ALGORIGTHM TABLE
     std::string check_func_name[100];
     void(*check_func[100])(Packet*);
-    unsigned int(*aggregate_checksum[100])(unsigned int, unsigned int, unsigned long long modnum);
-    unsigned long long checksum_Modnum[100];
+    unsigned int(*aggregate_checksum[100])(unsigned int, unsigned int, unsigned long long);
+    unsigned long long checksum_Moduli[100];
 
     void PrintData(Packet* P)
     {
@@ -171,17 +172,17 @@ namespace checksum
     {
         memset(P->data, 0, P->length * sizeof(int));
     }
-    bool SimulateError(Packet* P)                   // for error detection rate
+    int SimulateError(Packet* P)                   // for error detection rate
     {
-        bool errorflag = false;
+        int errorflag = 0;
         for (int j = 0; j < P->length; j++)
         {
-            for (int k = 0; k < 32; k++)
+            for (int k = 0; k < 31; k++)
             {
                 if (GetError())
                 {
                     P->data[j] = P->data[j] ^ (1 << k);             // bit flip
-                    errorflag = true;
+                    errorflag++;
                 }
             }
         }
@@ -190,7 +191,7 @@ namespace checksum
             if (GetError())
             {
                 P->checksum ^= (1 << k);                            // bit flip
-                errorflag = true;
+                errorflag++;
             }
         }
         return errorflag;
@@ -205,32 +206,38 @@ namespace checksum
             P->data[i] = ans;
         }
     }
-    unsigned int Add_checksum(unsigned int a, unsigned int b, unsigned long long modnum)
+    unsigned int Add_checksum(unsigned int a, unsigned int b, unsigned long long moduli)
     {
-        return (unsigned int)(((unsigned long long)a + (unsigned long long)b) % modnum);
+        return (unsigned int)(((unsigned long long)a + (unsigned long long)b) % moduli);
     }
-    unsigned int Mul_checksum(unsigned int a, unsigned int b, unsigned long long modnum)
+    unsigned int Mul_checksum(unsigned int a, unsigned int b, unsigned long long moduli)
     {
-        return (unsigned int)(((unsigned long long)a * (unsigned long long)b) % modnum);
+        return (unsigned int)(((unsigned long long)a * (unsigned long long)b) % moduli);
+    }
+    unsigned int uint16_checksum(unsigned int a, unsigned int b, unsigned long long moduli)
+    {
+        unsigned int temp1 = ((a >> 16) + (b >> 16)) % moduli;
+        unsigned int temp2 = ((a & 0xFFFF) + (b & 0xFFFF)) % moduli;
+        // std::cout << bs32(temp1) << '\n' << bs32(temp2) << '\n' << bs32((temp1 << 16) | (temp2 & 0xFFFF)) << '\n';
+        return (temp1 << 16) | (temp2 & 0xFFFF);
     }
 
 
-
-    void Trivial(Packet* P)                         // DimWiADD
+    void Trivial(Packet* P)                         // ADD
     {
         int ans = 0;
         for (int i = 0; i < P->length; i++)
             ans += P->data[i];
         P->checksum = ans;
     }
-    void LRC(Packet* P)                             // XOR
+    void LRC(Packet* P)                             // BITXOR
     {
         int ans = 0;
         for (int i = 0; i < P->length; i++)
             ans ^= P->data[i];
         P->checksum = ans;
     }
-    void CRC(Packet* P)                             // polynomial
+    void CRC(Packet* P)                             // Polynomial Division
     {
         unsigned int ans = CalcCRC32(0, (char*)P->data, P->length * sizeof(int) / sizeof(char));
         P->checksum = ans;
@@ -249,17 +256,18 @@ namespace checksum
         int ans = CalcForA(0, (uint16_t*) P->data, P->length * sizeof(int) / sizeof(uint16_t), 0xFFF1);
         P->checksum = ans;
     }
-    void AdlerPro(Packet* P)
+    void AdlerPro(Packet* P)                        //
     {
         unsigned int sum1 = 0;
         unsigned int sum2 = 0;
         for (int i = 0; i < P->length; i++)
         {
-            int temp = (P->data[i] & 0xFFFF) + ((P->data[i] >> 16) & 0xFFFF);
-            sum1 = (sum1 + temp) % 0xFFFF;
-            sum2 = (sum2 + sum1) % 0xFFFF;
+            unsigned temp = P->data[i];
+            sum1 = (sum1 + temp) % 0xFFF1;
+            sum2 = (sum2 + sum1) % 0xFFF1;
         }
         P->checksum = (sum2 << 16) | sum1;
+        //TODO: 聚合方式要改
     }
     void Devide(Packet* P)
     {
@@ -267,9 +275,9 @@ namespace checksum
         for (int i = 0; i < P->length; i++)
         {
             unsigned long long temp = P->data[i];
-            temp = (temp << 32) % Devide_Modnum;
-            temp = (temp * i) % Devide_Modnum;
-            ans = (ans + temp) % Devide_Modnum;
+            temp = (temp << 32) % Devide_Moduli;
+            temp = (temp * (2 * i + 1001)) % Devide_Moduli;
+            ans = (ans + temp) % Devide_Moduli;
         }
         P->checksum = ans;
 
@@ -279,7 +287,8 @@ namespace checksum
         unsigned int ans = 0;
         for (int i = 0; i < P->length; i++)
         {
-            ans += P->data[i] * PrimeNum[i + 100];
+            // ans += P->data[i] * PrimeNum[3 * i + 100];
+            ans += P->data[i] * (0xFC * i + 1001);
         }
         P->checksum = ans;
     }
@@ -288,7 +297,7 @@ namespace checksum
         unsigned long long ans = 1;
         for (int i = 0; i < P->length; i++)
         {
-            ans = (ans * FastPow(PrimeNum[i + 100], P->data[i], Paillier_Modnum)) % Paillier_Modnum;
+            ans = (ans * FastPow(PrimeNum[i + 5], P->data[i], Paillier_Moduli)) % Paillier_Moduli;
         }
         P->checksum = ans;
     }
@@ -298,53 +307,52 @@ namespace checksum
         check_func_name[0] = "Trivial";
         check_func[0] = &Trivial;
         aggregate_checksum[0] = &Add_checksum;
-        checksum_Modnum[0] = None_Modnum;
+        checksum_Moduli[0] = None_Moduli;
 
         check_func_name[1] = "LRC";
         check_func[1] = &LRC;
         aggregate_checksum[1] = &Add_checksum;
-        checksum_Modnum[1] = None_Modnum;
-
+        checksum_Moduli[1] = None_Moduli;
 
         check_func_name[2] = "CRC";
         check_func[2] = &CRC;
         aggregate_checksum[2] = &Add_checksum;
-        checksum_Modnum[2] = None_Modnum;
+        checksum_Moduli[2] = None_Moduli;
 
         check_func_name[3] = "None";
         check_func[3] = &None;
         aggregate_checksum[3] = &Add_checksum;
-        checksum_Modnum[3] = None_Modnum;
+        checksum_Moduli[3] = None_Moduli;
 
         check_func_name[4] = "Fletcher";
         check_func[4] = &Fletcher;
         aggregate_checksum[4] = &Add_checksum;
-        checksum_Modnum[4] = None_Modnum;
+        checksum_Moduli[4] = None_Moduli;
 
         check_func_name[5] = "Adler";
         check_func[5] = &Adler;
         aggregate_checksum[5] = &Add_checksum;
-        checksum_Modnum[5] = None_Modnum;
+        checksum_Moduli[5] = None_Moduli;
 
         check_func_name[6] = "AdlerPro";
         check_func[6] = &AdlerPro;
-        aggregate_checksum[6] = &Add_checksum;
-        checksum_Modnum[6] = None_Modnum;
+        aggregate_checksum[6] = &uint16_checksum;
+        checksum_Moduli[6] = 0xFFF1;
 
         check_func_name[7] = "Devide";
         check_func[7] = &Devide;
         aggregate_checksum[7] = &Add_checksum;
-        checksum_Modnum[7] = Devide_Modnum;
+        checksum_Moduli[7] = Devide_Moduli;
 
         check_func_name[8] = "Multiple";
         aggregate_checksum[8] = &Add_checksum;
         check_func[8] = &Multiple;
-        checksum_Modnum[8] = None_Modnum;
+        checksum_Moduli[8] = None_Moduli;
 
         check_func_name[9] = "Paillier";
         check_func[9] = Paillier;
         aggregate_checksum[9] = &Mul_checksum;
-        checksum_Modnum[9] = Paillier_Modnum;
+        checksum_Moduli[9] = Paillier_Moduli;
     }
 
 
@@ -365,7 +373,6 @@ namespace checksum
 }
 
 
-
 double Test_Homomorphic(int length, int Ntimes, int func_id)
 {
     std::cout << "-----Testing function " << func_id << ": " << checksum::check_func_name[func_id] << std::endl;
@@ -383,13 +390,17 @@ double Test_Homomorphic(int length, int Ntimes, int func_id)
         unsigned int Asum = A->checksum;
         unsigned int Bsum = B->checksum;
         
-        int Csum_exp = checksum::aggregate_checksum[func_id](Asum, Bsum, checksum::checksum_Modnum[func_id]);
-
+        unsigned int Csum_exp = checksum::aggregate_checksum[func_id](Asum, Bsum, checksum::checksum_Moduli[func_id]);
         checksum::Aggregate(A, B, C, func_id);
         int Csum = C->checksum;
         
+
         if(Csum_exp == Csum)
             cnt++;
+        else
+        {
+            // std::cout << bs32(Csum_exp) << '\n' << bs32(Csum) << '\n';
+        }
     }
     std::cout << "Homomorphic: " << cnt << " homomorphic cases under " << Ntimes << " tests" << std::endl;
     delete A;
@@ -413,7 +424,7 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
         for (int j = 0; j < A->length; j++)
             AA[j] = A->data[j];
 
-        bool errorflag = checksum::SimulateError(A);
+        int errorflag = checksum::SimulateError(A);
         if (!errorflag)                                             // error or not
             continue;
         errorcnt++;
@@ -422,12 +433,21 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
         checksum::check_func[func_id](A);
         unsigned int Asum_post = A->checksum;
 
-        if (Asum_post == Asum_pre)                                  // undetected error
+        if (Asum_post == Asum_pre)     // undetected error
         {
             udcnt++;
+            if (udcnt < 10)
+                std::cout << errorflag << std::endl;
+            // for (int j = 0; j < A->length; j++)
+            // {
+            //     std::cout << bs32(AA[j]) << ' ';
+            // }
+            // std::cout << std::endl;
+            // checksum::PrintData(A);
+
         }
     }
-    std::cout << "ErrorRatio: " << udcnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n\n";
+    std::cout << "ErrorRatio: " << udcnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n";
 
 
     delete A;
@@ -439,6 +459,8 @@ void Init()
     srand(time(0));
     checksum::Fill_func();
     CalcPrime();
+    return;
+
 
     // SHOW FASTPOW
     for (int j = 0; j < 10; j++)
@@ -454,8 +476,6 @@ int main(int argc, char **argv)
 {
     Init();
 
-
-
     time_t T_begin, T_end;
     time(&T_begin);
     std::cout << "START\n";
@@ -469,7 +489,7 @@ int main(int argc, char **argv)
         double P_ud = Test_ErrorRatio(Vector_Length, Prob_Undetected_Ntest, i);
 
         time(&T_1);
-        std::cout << "TIME: " << difftime(T_1, T_0) << " second." << std::endl;
+        std::cout << "TIME: " << difftime(T_1, T_0) << " second.\n\n";
         
     }
 
