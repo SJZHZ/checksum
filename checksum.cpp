@@ -2,6 +2,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <string>
+#include <cstring>
 #include <string.h>
 #include <iostream>
 #include <bitset>
@@ -13,7 +14,7 @@
 #define Vector_Length 100
 #define Bit_Error_Ratio 1e4
 #define Homomorphic_Ntest 1e6
-#define Prob_Undetected_Ntest 5e7
+#define Prob_Undetected_Ntest 1e8
 
 
 #define bs32 std::bitset<32>
@@ -26,12 +27,12 @@
 
 // Bit Op
 int BER = Bit_Error_Ratio;
-bool GetError()         // BER
+bool GetError()         // P = BER
 {
     int res = rand() % BER;
     return res == 0;
 }
-bool GetBit()           // Uniform Distribution
+bool GetBit()           // P = 1 / 2
 {
     int res = rand() % 2;
     return res;
@@ -59,7 +60,6 @@ void CalcPrime()
             cnt++;
         }
 }
-
 unsigned int FastPow(unsigned int a, unsigned int n, unsigned long long moduli)
 {
     unsigned long long temp = a, res = 1;
@@ -78,7 +78,6 @@ bool CRC32_avail = false;
 unsigned int CRC32_table[256];
 unsigned int CRC32_pre = CRC32_POLY_HEX;    // 正向
 unsigned int CRC32_post = 0;                // 反向
-
 unsigned int reverse(unsigned int temp)
 {
     unsigned int ans = 0;
@@ -109,7 +108,7 @@ void MakeCRC32()                            // 8bit Table
     }
     CRC32_avail = true;
 }
-unsigned int CalcCRC32(unsigned int crc, char* buff, int len)
+unsigned int CalcCRC32(unsigned int crc, char* buff, int len)       // CRC是字节流校验，无需关注大小端
 {
     if (!CRC32_avail)
         MakeCRC32();
@@ -177,7 +176,7 @@ namespace checksum
         int errorflag = 0;
         for (int j = 0; j < P->length; j++)
         {
-            for (int k = 0; k < 31; k++)
+            for (int k = 0; k < 31; k++)            // 不溢出
             {
                 if (GetError())
                 {
@@ -201,7 +200,7 @@ namespace checksum
         for (int i = 0; i < P->length; i++)
         {
             int ans = 0;
-            for (int j = 0; j < 31; j++)
+            for (int j = 0; j < 31; j++)            // 不溢出
                 ans |= (int)GetBit() << j;
             P->data[i] = ans;
         }
@@ -288,7 +287,7 @@ namespace checksum
         for (int i = 0; i < P->length; i++)
         {
             // ans += P->data[i] * PrimeNum[3 * i + 100];
-            ans += P->data[i] * (0xFC * i + 1001);
+            ans += P->data[i] * (0xFC * i + 1010101);
         }
         P->checksum = ans;
     }
@@ -413,6 +412,8 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
 {
     double udcnt = 0;
     int errorcnt = 0;
+    int HD[20] = {0};
+    int threshold = 7;
     checksum::Packet* A = new checksum::Packet(length);
     for (int i = 0; i < Ntimes; i++)
     {
@@ -436,8 +437,12 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
         if (Asum_post == Asum_pre)     // undetected error
         {
             udcnt++;
-            if (udcnt < 10)
-                std::cout << errorflag << std::endl;
+            if (errorflag <= threshold)
+                HD[errorflag]++;
+            else
+                HD[threshold]++;
+            // if (udcnt < 10)
+                // std::cout << errorflag << std::endl;
             // for (int j = 0; j < A->length; j++)
             // {
             //     std::cout << bs32(AA[j]) << ' ';
@@ -447,7 +452,10 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
 
         }
     }
-    std::cout << "ErrorRatio: " << udcnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n";
+    for (int i = 1; i <= threshold; i++)
+        std::cout << "HD=" << i << ":" << HD[i] << ". ";
+    std::cout << "HD>" << threshold << ":" << HD[threshold] << ". ";
+    std::cout << "\nErrorRatio: " << udcnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n";
 
 
     delete A;
@@ -475,12 +483,20 @@ void Init()
 int main(int argc, char **argv)
 {
     Init();
+    int start_id = 0;
+    int end_id = 9;
+    if (argc == 3)
+    {
+        start_id = atoi(argv[1]);
+        end_id = atoi(argv[2]);
+    }
+
 
     time_t T_begin, T_end;
     time(&T_begin);
     std::cout << "START\n";
 
-    for (int i = 0; i <= 9; i++)
+    for (int i = start_id; i <= end_id; i++)
     {
         time_t T_0, T_1;
         time(&T_0);
