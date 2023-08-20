@@ -1,0 +1,48 @@
+-----CHECK-----
+
+TESTING P_ud WITH LENGTH 10 FOR 10000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:34. HD=4:31. HD=5:22. HD=6:8. HD=7:5. HD=8:1. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 101 undetected cases in 9564712 error cases 
+-----END
+TIME: 521 second.
+
+TOTAL TIME: 521 second.
+
+TESTING P_ud WITH LENGTH 20 FOR 10000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:35. HD=4:32. HD=5:9. HD=6:5. HD=7:5. HD=8:1. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 87 undetected cases in 9564975 error cases 
+-----END
+TIME: 522 second.
+
+TOTAL TIME: 522 second.
+
+TESTING P_ud WITH LENGTH 30 FOR 10000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:24. HD=4:36. HD=5:19. HD=6:14. HD=7:2. HD=8:4. HD=9:0. HD=10:1. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 100 undetected cases in 9565091 error cases 
+-----END
+TIME: 522 second.
+
+TOTAL TIME: 522 second.
+
+TESTING P_ud WITH LENGTH 40 FOR 10000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:35. HD=4:34. HD=5:19. HD=6:15. HD=7:0. HD=8:1. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 104 undetected cases in 9565026 error cases 
+-----END
+TIME: 545 second.
+
+TOTAL TIME: 545 second.
+5
+
+TESTING P_ud WITH LENGTH 50 FOR 10000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:25. HD=4:15. HD=5:2. HD=6:1. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 43 undetected cases in 7945428 error cases 
+-----END
+TIME: 272 second.
+
+TOTAL TIME: 272 second.
+-----END------

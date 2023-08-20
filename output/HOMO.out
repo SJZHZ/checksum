@@ -1,0 +1,118 @@
+-----CHECK-----
+
+HOMOMORPHIC
+-----Testing function 0: None
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 439 second.
+
+-----Testing function 1: LRC
+Homomorphic: 0 homomorphic cases under 10000000 tests
+TIME: 439 second.
+
+-----Testing function 2: CRC
+Homomorphic: 0 homomorphic cases under 10000000 tests
+TIME: 468 second.
+
+-----Testing function 3: Trivial
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 439 second.
+
+-----Testing function 4: Fletcher
+Homomorphic: 0 homomorphic cases under 10000000 tests
+TIME: 461 second.
+
+-----Testing function 5: Adler
+Homomorphic: 0 homomorphic cases under 10000000 tests
+TIME: 471 second.
+
+-----Testing function 6: AdlerPro
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 450 second.
+
+-----Testing function 7: Devide
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 452 second.
+
+-----Testing function 8: Multiple
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 518 second.
+
+-----Testing function 9: Paillier
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 795 second.
+
+-----Testing function 10: StreamMod
+Homomorphic: 1e+07 homomorphic cases under 10000000 tests
+TIME: 451 second.
+
+TOTAL TIME: 5383 second.
+
+HOMOMORPHIC
+-----Testing function 0: None
+HD=1:2269157. HD=2:352212. HD=3:35957. HD=4:2835. HD=5:163. HD=6:9. HD=7:0. HD>7:0. 
+ErrorRatio: 2.66033e+06 undetected cases in 2692245 error cases 
+-----END
+TIME: 513 second.
+
+-----Testing function 1: LRC
+HD=1:0. HD=2:11365. HD=3:0. HD=4:17. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 11382 undetected cases in 2690987 error cases 
+-----END
+TIME: 507 second.
+
+-----Testing function 2: CRC
+HD=1:0. HD=2:0. HD=3:0. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 0 undetected cases in 2688476 error cases 
+-----END
+TIME: 518 second.
+
+-----Testing function 3: Trivial
+HD=1:0. HD=2:5686. HD=3:38. HD=4:2. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 5726 undetected cases in 2689034 error cases 
+-----END
+TIME: 506 second.
+
+-----Testing function 4: Fletcher
+HD=1:0. HD=2:0. HD=3:1. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 1 undetected cases in 2689675 error cases 
+-----END
+TIME: 516 second.
+
+-----Testing function 5: Adler
+HD=1:0. HD=2:0. HD=3:1. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 1 undetected cases in 2687621 error cases 
+-----END
+TIME: 519 second.
+
+-----Testing function 6: AdlerPro
+HD=1:0. HD=2:0. HD=3:0. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 0 undetected cases in 2689109 error cases 
+-----END
+TIME: 511 second.
+
+-----Testing function 7: Devide
+HD=1:0. HD=2:0. HD=3:1. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 1 undetected cases in 2688669 error cases 
+-----END
+TIME: 512 second.
+
+-----Testing function 8: Multiple
+HD=1:0. HD=2:371. HD=3:4. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 375 undetected cases in 2686540 error cases 
+-----END
+TIME: 597 second.
+
+-----Testing function 9: Paillier
+HD=1:0. HD=2:20. HD=3:0. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 20 undetected cases in 2688010 error cases 
+-----END
+TIME: 655 second.
+
+-----Testing function 10: StreamMod
+HD=1:0. HD=2:0. HD=3:0. HD=4:0. HD=5:0. HD=6:0. HD=7:0. HD>7:0. 
+ErrorRatio: 0 undetected cases in 2688277 error cases 
+-----END
+TIME: 511 second.
+
+TOTAL TIME: 5865 second.
+-----END------

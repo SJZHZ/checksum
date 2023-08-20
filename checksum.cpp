@@ -1,28 +1,50 @@
 #include <cstdio>
 #include <cmath>
 #include <stdio.h>
+#include <unistd.h>
 #include <string>
 #include <cstring>
 #include <string.h>
 #include <iostream>
 #include <bitset>
 // #include <mpi.h>
+#include <omp.h>
 #include <cstdlib>
 #include <ctime>
 
-// CONFIG
+// DEFAULT CONFIG
 #define Vector_Length 100
-#define Bit_Error_Ratio 1e4
-#define Homomorphic_Ntest 1e6
-#define Prob_Undetected_Ntest 1e8
+#define Bit_Error_Ratio 1e3         // 取倒数
+#define Homomorphic_Ntest 1e7
+#define Prob_Undetected_Ntest 1e7
+#define threshold 15
+#define Test_H 0
+#define Test_P 1
+#define Test_Default Test_H
+#define Start_Default 0
+#define End_Default 10
 
 
 #define bs32 std::bitset<32>
+#define bs64 std::bitset<64>
+
 // MAGIC NUMBER
 #define CRC32_POLY_HEX 0x04C11DB7
+#define CRC16_POLYNOMIAL 0x8005
+// #define CRC16_POLY_HEX 0xA001
+// #define CRC16_POLY_HEX 0x1021
+// #define CRC16_POLY_HEX 0x8408
+#define CRC16_POLY_HEX 0x8005
+
 #define None_Moduli 1ull << 32
 #define Devide_Moduli 0xFF03C0FFull
 #define Paillier_Moduli 0xF000FF06ull
+
+#define Big_Moduli 0b11110000110000111010010101101001ull
+// #define Big_Moduli_16 0b1111000010110001u
+#define Big_Moduli_16 0b1101010001101001u
+// #define Big_Moduli_16 0b1111001010110001u
+#define Big_Moduli_8 0b11100101u
 
 
 // Bit Op
@@ -120,6 +142,28 @@ unsigned int CalcCRC32(unsigned int crc, char* buff, int len)       // CRC是字
     }
     return ~crc;                                            // 逆序
 }
+
+unsigned int ModBusCRC16(unsigned char *data, unsigned int len)
+{
+    unsigned int i, j, tmp, CRC16;
+
+    CRC16 = 0xFFFF;             //CRC寄存器初始值
+    for (i = 0; i < len; i++)
+    {
+        CRC16 ^= data[i];
+        for (j = 0; j < 8; j++)
+        {
+            tmp = (unsigned int)(CRC16 & 0x0001);
+            CRC16 >>= 1;
+            if (tmp == 1)
+            {
+                CRC16 ^= CRC16_POLY_HEX;    //异或多项式
+            }
+        }
+    }
+    return CRC16;
+}
+
 
 // Fletcher or Adler
 unsigned int CalcForA(unsigned int init_sum1, uint16_t* ptr, int len, unsigned long long moduli)
@@ -300,11 +344,49 @@ namespace checksum
         }
         P->checksum = ans;
     }
+    void BigMod(Packet* P)
+    {
+        unsigned long long ans = 0;
+        for (int i = 0; i < P->length; i++)
+        {
+            ans = ((ans << 32) + (unsigned int)(P->data[i])) % Big_Moduli;
+        }
+        ans = (ans << 32) % Big_Moduli;
+        P->checksum = ans;
+    }
+    void BigMod16(Packet* P)
+    {
+        unsigned long long ans = 0;
+        for (int i = 0; i < P->length; i++)
+        {
+            ans = ((ans << 32) + (unsigned int)(P->data[i])) % Big_Moduli_16;
+        }
+        ans = (ans << 32) % Big_Moduli_16;
+        P->checksum = ans;
+    }
+    void BigMod8(Packet* P)
+    {
+        unsigned long long ans = 0;
+        for (int i = 0; i < P->length; i++)
+        {
+            ans = ((ans << 32) + (unsigned int)(P->data[i])) % Big_Moduli_8;
+        }
+        ans = (ans << 32) % Big_Moduli_8;
+        P->checksum = ans;
+    }
+
+    void CRC16(Packet* P)
+    {
+        uint16_t ans = ModBusCRC16((unsigned char*) P->data, P->length * sizeof(int) / sizeof(char));
+        // printf("0x%04X\n", ans);
+        P->checksum = ans;
+    }
+
 
     void Fill_func()
     {
-        check_func_name[0] = "Trivial";
-        check_func[0] = &Trivial;
+        check_func_name[0] = "None";
+        check_func[0] = &None;
         aggregate_checksum[0] = &Add_checksum;
         checksum_Moduli[0] = None_Moduli;
 
@@ -318,8 +400,8 @@ namespace checksum
         aggregate_checksum[2] = &Add_checksum;
         checksum_Moduli[2] = None_Moduli;
 
-        check_func_name[3] = "None";
-        check_func[3] = &None;
+        check_func_name[3] = "Trivial";
+        check_func[3] = &Trivial;
         aggregate_checksum[3] = &Add_checksum;
         checksum_Moduli[3] = None_Moduli;
 
@@ -352,6 +434,27 @@ namespace checksum
         check_func[9] = Paillier;
         aggregate_checksum[9] = &Mul_checksum;
         checksum_Moduli[9] = Paillier_Moduli;
+        
+        check_func_name[10] = "BigMod";
+        check_func[10] = BigMod;
+        aggregate_checksum[10] = &Add_checksum;
+        checksum_Moduli[10] = Big_Moduli;  
+
+        check_func_name[11] = "BigMod16";
+        check_func[11] = BigMod16;
+        aggregate_checksum[11] = &Add_checksum;
+        checksum_Moduli[11] = Big_Moduli_16;
+
+        check_func_name[12] = "BigMod8";
+        check_func[12] = BigMod8;
+        aggregate_checksum[12] = &Add_checksum;
+        checksum_Moduli[12] = Big_Moduli_8;
+
+        check_func_name[13] = "CRC16";
+        check_func[13] = CRC16;
+        aggregate_checksum[13] = &Add_checksum;
+        checksum_Moduli[13] = None_Moduli;
+
     }
 
 
@@ -380,7 +483,7 @@ double Test_Homomorphic(int length, int Ntimes, int func_id)
     checksum::Packet* B = new checksum::Packet(length);
     checksum::Packet* C = new checksum::Packet(length);
     double cnt = 0;
-    for (int i = 0; i < Ntimes; i++)
+    for (long long i = 0; i < Ntimes; i++)
     {
         checksum::GenerateRandom(A);
         checksum::GenerateRandom(B);
@@ -393,14 +496,19 @@ double Test_Homomorphic(int length, int Ntimes, int func_id)
         checksum::Aggregate(A, B, C, func_id);
         int Csum = C->checksum;
         
-
         if(Csum_exp == Csum)
             cnt++;
         else
         {
-            // std::cout << bs32(Csum_exp) << '\n' << bs32(Csum) << '\n';
+            // PrintData(A);
+            // std::cout << bs32(Asum) << '\n';
+            // PrintData(B);
+            // std::cout << bs32(Bsum) << '\n';
+            // PrintData(C);
+            // std::cout << bs32(Csum_exp) << ' ' << bs32(Csum) << '\n';
         }
     }
+    
     std::cout << "Homomorphic: " << cnt << " homomorphic cases under " << Ntimes << " tests" << std::endl;
     delete A;
     delete B;
@@ -410,29 +518,27 @@ double Test_Homomorphic(int length, int Ntimes, int func_id)
 
 double Test_ErrorRatio(int length, int Ntimes, int func_id)
 {
-    double udcnt = 0;
-    int errorcnt = 0;
-    int HD[20] = {0};
-    int threshold = 7;
+    std::cout << "-----Testing function " << func_id << ": " << checksum::check_func_name[func_id] << std::endl;
+
+    double udcnt = 0;           // undetected errors
+    int errorcnt = 0;           // errors
+    int HD[20] = {0};           // Hamming Distance 
     checksum::Packet* A = new checksum::Packet(length);
-    for (int i = 0; i < Ntimes; i++)
+
+    for (long long i = 0; i < Ntimes; i++)
     {
         checksum::GenerateRandom(A);
         checksum::check_func[func_id](A);
-
-        // debugging
-        int AA[100];
-        for (int j = 0; j < A->length; j++)
-            AA[j] = A->data[j];
 
         int errorflag = checksum::SimulateError(A);
         if (!errorflag)                                             // error or not
             continue;
         errorcnt++;
 
-        unsigned int Asum_pre = A->checksum;
+        unsigned int Asum_pre = (A)->checksum;
+
         checksum::check_func[func_id](A);
-        unsigned int Asum_post = A->checksum;
+        unsigned int Asum_post = (A)->checksum;
 
         if (Asum_post == Asum_pre)     // undetected error
         {
@@ -441,24 +547,21 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
                 HD[errorflag]++;
             else
                 HD[threshold]++;
-            // if (udcnt < 10)
-                // std::cout << errorflag << std::endl;
-            // for (int j = 0; j < A->length; j++)
+            // if (errorflag == 1)
             // {
-            //     std::cout << bs32(AA[j]) << ' ';
+            //     checksum::PrintData(A);
             // }
-            // std::cout << std::endl;
-            // checksum::PrintData(A);
-
         }
     }
+
+    delete A;
+
     for (int i = 1; i <= threshold; i++)
         std::cout << "HD=" << i << ":" << HD[i] << ". ";
     std::cout << "HD>" << threshold << ":" << HD[threshold] << ". ";
     std::cout << "\nErrorRatio: " << udcnt << " undetected cases in " << errorcnt << " error cases " << "\n-----END\n";
 
 
-    delete A;
     return udcnt / Ntimes;
 }
 
@@ -482,35 +585,55 @@ void Init()
 
 int main(int argc, char **argv)
 {
-    Init();
-    int start_id = 0;
-    int end_id = 9;
-    if (argc == 3)
+    long long Ntests = 0;
+    int HorP = Test_Default, length = Vector_Length;
+    int start_id = Start_Default, end_id = End_Default;
+    if (argc >= 2)
+        HorP = atoi(argv[1]);
+    if (HorP == Test_H)
+        Ntests = Homomorphic_Ntest;
+    if (HorP == Test_P)
+        Ntests = Prob_Undetected_Ntest;
+    if (argc >= 3)
     {
-        start_id = atoi(argv[1]);
+        start_id = atoi(argv[2]);
         end_id = atoi(argv[2]);
     }
+    if (argc >= 4)
+        Ntests = atoll(argv[3]);
+    if (argc >= 5)
+        length = atoi(argv[4]);
+    // ./check HorP strat_id end_id Ntests length
+
+    Init();
+
+    std::cout << "\nTESTING ";
+    if (HorP == Test_H)
+        std::cout << "HOMOMORPHIC";
+    if (HorP == Test_P)
+        std::cout << "P_ud";
+    std::cout << " WITH LENGTH " << length << " FOR " << Ntests << " TIMES.\n";
+
 
 
     time_t T_begin, T_end;
     time(&T_begin);
-    std::cout << "START\n";
-
     for (int i = start_id; i <= end_id; i++)
     {
         time_t T_0, T_1;
         time(&T_0);
 
-        double H = Test_Homomorphic(Vector_Length, Homomorphic_Ntest, i);
-        double P_ud = Test_ErrorRatio(Vector_Length, Prob_Undetected_Ntest, i);
+        if (HorP == Test_H)
+            double H = Test_Homomorphic(length, Ntests, i);
+        if (HorP == Test_P)
+            double P_ud = Test_ErrorRatio(length, Ntests, i);
 
         time(&T_1);
         std::cout << "TIME: " << difftime(T_1, T_0) << " second.\n\n";
         
     }
-
     time(&T_end);
-    std::cout << "TIME: " << difftime(T_end, T_begin) << " second." << std::endl;
+    std::cout << "TOTAL TIME: " << difftime(T_end, T_begin) << " second." << std::endl;
 
     return 0;
 }

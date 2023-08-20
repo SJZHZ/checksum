@@ -1,0 +1,52 @@
+-----CHECK-----
+5
+
+TESTING P_ud WITH LENGTH 10 FOR 10000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:0. HD=3:0. HD=4:1. HD=5:0. HD=6:0. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 1 undetected cases in 2897280 error cases 
+-----END
+TIME: 62 second.
+
+TOTAL TIME: 62 second.
+5
+
+TESTING P_ud WITH LENGTH 20 FOR 10000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:0. HD=3:0. HD=4:1. HD=5:0. HD=6:0. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 1 undetected cases in 4792752 error cases 
+-----END
+TIME: 120 second.
+
+TOTAL TIME: 120 second.
+5
+
+TESTING P_ud WITH LENGTH 30 FOR 10000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:0. HD=3:0. HD=4:8. HD=5:0. HD=6:0. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 8 undetected cases in 6182854 error cases 
+-----END
+TIME: 180 second.
+
+TOTAL TIME: 180 second.
+5
+
+TESTING P_ud WITH LENGTH 40 FOR 10000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:0. HD=3:0. HD=4:11. HD=5:0. HD=6:0. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 11 undetected cases in 7200583 error cases 
+-----END
+TIME: 240 second.
+
+TOTAL TIME: 240 second.
+5
+
+TESTING P_ud WITH LENGTH 50 FOR 10000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:0. HD=3:0. HD=4:15. HD=5:0. HD=6:2. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 17 undetected cases in 7947803 error cases 
+-----END
+TIME: 301 second.
+
+TOTAL TIME: 301 second.
+-----END------
