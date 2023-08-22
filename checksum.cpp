@@ -34,7 +34,11 @@
 // #define CRC16_POLY_HEX 0xA001
 // #define CRC16_POLY_HEX 0x1021
 // #define CRC16_POLY_HEX 0x8408
-#define CRC16_POLY_HEX 0x8005
+// #define CRC16_POLY_HEX 0x8005
+// #define CRC16_POLY_HEX 0b1000101001100001
+// #define CRC16_POLY_HEX 0b1000010001101001
+#define CRC16_POLY_HEX 0b1010010101101001
+
 
 #define None_Moduli 1ull << 32
 #define Devide_Moduli 0xFF03C0FFull
@@ -42,8 +46,14 @@
 
 #define Big_Moduli 0b11110000110000111010010101101001ull
 // #define Big_Moduli_16 0b1111000010110001u
-#define Big_Moduli_16 0b1101010001101001u
+// #define Big_Moduli_16 0b1101010001101001u
 // #define Big_Moduli_16 0b1111001010110001u
+// #define Big_Moduli_16 0b1101001010110001u
+// #define Big_Moduli_16 0b1101001010111001u
+// #define Big_Moduli_16 0b1100011010010101u
+// #define Big_Moduli_16 0xFFFF
+#define Big_Moduli_16 0xFFF1
+
 #define Big_Moduli_8 0b11100101u
 
 
