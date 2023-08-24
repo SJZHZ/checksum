@@ -6,6 +6,13 @@ https://za4d3zvmtl1.feishu.cn/docx/DfrhdvOUBonPMtxlwGmcNDpQnVd
 
 ## LOG
 ```txt
+8.23
+    1. Moduli
+        0xF141 41663 41664
+        0xA2C1 41661 41662
+        0xA0C9 41658 41659
+
+
 8.22
     1. Moduli
         0xFFFF 41592 41593

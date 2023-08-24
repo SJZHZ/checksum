@@ -52,7 +52,9 @@
 // #define Big_Moduli_16 0b1101001010111001u
 // #define Big_Moduli_16 0b1100011010010101u
 // #define Big_Moduli_16 0xFFFF
-#define Big_Moduli_16 0xFFF1
+#define Big_Moduli_16 0xF141
+// #define Big_Moduli_16 0xA2C1
+// #define Big_Moduli_16 0xA0C9
 
 #define Big_Moduli_8 0b11100101u
 

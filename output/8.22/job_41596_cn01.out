@@ -1,0 +1,11 @@
+-----CHECK-----
+
+TESTING P_ud WITH LENGTH 100 FOR 1000000000 TIMES.
+-----Testing function 13: CRC16
+HD=1:0. HD=2:607955. HD=3:0. HD=4:11291. HD=5:2058. HD=6:1108. HD=7:439. HD=8:150. HD=9:48. HD=10:11. HD=11:1. HD=12:2. HD=13:1. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 623064 undetected cases in 956493591 error cases 
+-----END
+TIME: 60780 second.
+
+TOTAL TIME: 60780 second.
+-----END------
