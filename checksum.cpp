@@ -45,16 +45,20 @@
 #define Paillier_Moduli 0xF000FF06ull
 
 #define Big_Moduli 0b11110000110000111010010101101001ull
-// #define Big_Moduli_16 0b1111000010110001u
+#define Big_Moduli_16 0b1111000010110001u
 // #define Big_Moduli_16 0b1101010001101001u
 // #define Big_Moduli_16 0b1111001010110001u
 // #define Big_Moduli_16 0b1101001010110001u
 // #define Big_Moduli_16 0b1101001010111001u
 // #define Big_Moduli_16 0b1100011010010101u
 // #define Big_Moduli_16 0xFFFF
-#define Big_Moduli_16 0xF141
+// #define Big_Moduli_16 0xF141
 // #define Big_Moduli_16 0xA2C1
 // #define Big_Moduli_16 0xA0C9
+// #define Big_Moduli_16 0b1000011010010111u
+// #define Big_Moduli_16 0b1010011010010111u
+// #define Big_Moduli_16 0b1110000000010001u
+// #define Big_Moduli_16 0b1101000010001001u
 
 #define Big_Moduli_8 0b11100101u
 
@@ -540,6 +544,7 @@ double Test_ErrorRatio(int length, int Ntimes, int func_id)
     for (long long i = 0; i < Ntimes; i++)
     {
         checksum::GenerateRandom(A);
+        // checksum::GenerateZero(A);
         checksum::check_func[func_id](A);
 
         int errorflag = checksum::SimulateError(A);

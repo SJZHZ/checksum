@@ -1,0 +1,11 @@
+-----CHECK-----
+
+TESTING P_ud WITH LENGTH 100 FOR 1000000000 TIMES.
+-----Testing function 11: BigMod16
+HD=1:0. HD=2:0. HD=3:5070. HD=4:3984. HD=5:2487. HD=6:1321. HD=7:588. HD=8:210. HD=9:82. HD=10:21. HD=11:6. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 13769 undetected cases in 956489366 error cases 
+-----END
+TIME: 54397 second.
+
+TOTAL TIME: 54397 second.
+-----END------
