@@ -6,6 +6,21 @@ https://za4d3zvmtl1.feishu.cn/docx/DfrhdvOUBonPMtxlwGmcNDpQnVd
 
 ## LOG
 ```txt
+
+9.6
+    AdlerPro(12+12)
+        42343 42344
+    BigMod(24)
+        42345 42346
+
+8.27
+    Moduli
+        0b1101001010001001u 41875 41876
+        0b1101001001001001u 41877 41878
+        0b1101001001001101u 41883 41884
+    AdlerPro
+        41879 41880 41881 41882
+
 8.24
     1. Moduli
         0b1000011010010111 41698 41699

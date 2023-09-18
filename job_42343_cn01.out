@@ -1,0 +1,11 @@
+-----CHECK-----
+
+TESTING P_ud WITH LENGTH 100 FOR 1000000000 TIMES.
+-----Testing function 6: AdlerPro
+HD=1:0. HD=2:0. HD=3:1140. HD=4:185. HD=5:29. HD=6:9. HD=7:0. HD=8:0. HD=9:0. HD=10:0. HD=11:0. HD=12:0. HD=13:0. HD=14:0. HD=15:0. HD>15:0. 
+ErrorRatio: 1363 undetected cases in 956486946 error cases 
+-----END
+TIME: 54301 second.
+
+TOTAL TIME: 54301 second.
+-----END------

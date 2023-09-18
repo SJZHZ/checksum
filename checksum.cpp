@@ -45,7 +45,7 @@
 #define Paillier_Moduli 0xF000FF06ull
 
 #define Big_Moduli 0b11110000110000111010010101101001ull
-#define Big_Moduli_16 0b1111000010110001u
+// #define Big_Moduli_16 0b1111000010110001u
 // #define Big_Moduli_16 0b1101010001101001u
 // #define Big_Moduli_16 0b1111001010110001u
 // #define Big_Moduli_16 0b1101001010110001u
@@ -59,6 +59,10 @@
 // #define Big_Moduli_16 0b1010011010010111u
 // #define Big_Moduli_16 0b1110000000010001u
 // #define Big_Moduli_16 0b1101000010001001u
+// #define Big_Moduli_16 0b1101001010001001u
+// #define Big_Moduli_16 0b1101001001001001u
+// #define Big_Moduli_16 0b1101001001001101u
+#define Big_Moduli_16 0b11010101001001001101u
 
 #define Big_Moduli_8 0b11100101u
 
@@ -322,8 +326,10 @@ namespace checksum
         for (int i = 0; i < P->length; i++)
         {
             unsigned temp = P->data[i];
-            sum1 = (sum1 + temp) % 0xFFF1;
-            sum2 = (sum2 + sum1) % 0xFFF1;
+            // sum1 = (sum1 + temp) % 0xFFF1;
+            // sum2 = (sum2 + sum1) % 0xFFF1;
+            sum1 = (sum1 + temp) % 0x0FF1;
+            sum2 = (sum2 + sum1) % 0x0FF1;
         }
         P->checksum = (sum2 << 16) | sum1;
         //TODO: 聚合方式要改
@@ -434,7 +440,8 @@ namespace checksum
         check_func_name[6] = "AdlerPro";
         check_func[6] = &AdlerPro;
         aggregate_checksum[6] = &uint16_checksum;
-        checksum_Moduli[6] = 0xFFF1;
+        // checksum_Moduli[6] = 0xFFF1;
+        checksum_Moduli[6] = 0x0FF1;
 
         check_func_name[7] = "Devide";
         check_func[7] = &Devide;
