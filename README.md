@@ -6,11 +6,21 @@ https://za4d3zvmtl1.feishu.cn/docx/DfrhdvOUBonPMtxlwGmcNDpQnVd
 
 ## LOG
 ```txt
+9.21 
+    调整为24位BigMod，长度400int并修改BER
+        43113 43116
+
+9.19
+    BigMod-20 1600Bytes
+        42974 42975 42976 (May Timeout)
+        43004 43005
+        43008 43009
+
 
 9.6
     AdlerPro(12+12)
         42343 42344
-    BigMod(24)
+    BigMod(20)
         42345 42346
 
 8.27

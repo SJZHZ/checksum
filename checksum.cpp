@@ -14,7 +14,7 @@
 
 // DEFAULT CONFIG
 #define Vector_Length 100
-#define Bit_Error_Ratio 1e3         // 取倒数
+#define Bit_Error_Ratio 2e4         // 取倒数
 #define Homomorphic_Ntest 1e7
 #define Prob_Undetected_Ntest 1e7
 #define threshold 15
@@ -62,7 +62,8 @@
 // #define Big_Moduli_16 0b1101001010001001u
 // #define Big_Moduli_16 0b1101001001001001u
 // #define Big_Moduli_16 0b1101001001001101u
-#define Big_Moduli_16 0b11010101001001001101u
+// #define Big_Moduli_16 0b11010101001001001101u
+#define Big_Moduli_16 0b110101010010010010001001u
 
 #define Big_Moduli_8 0b11100101u
 

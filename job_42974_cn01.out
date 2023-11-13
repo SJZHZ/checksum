@@ -1,0 +1,5 @@
+-----CHECK-----
+
+TESTING P_ud WITH LENGTH 400 FOR 1000000000 TIMES.
+-----Testing function 11: BigMod16
+slurmstepd: error: *** JOB 42974 ON cn01 CANCELLED AT 2023-09-20T02:21:41 DUE TO TIME LIMIT ***
